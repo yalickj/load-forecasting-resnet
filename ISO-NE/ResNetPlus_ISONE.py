@@ -166,12 +166,13 @@ def data_split(D, T, D_max, D_min, season, weekday, festival, num_train_days, va
     return (X_train, X_val, X_test, Y_train, Y_val, Y_test)
 
 num_pre_days = 84
-num_train = 1036-84
-num_days = num_train + num_pre_days + 365
+num_days = 1401
+num_test_days = 365
+num_train_days = 952
 num_data_points = num_days * 24
-num_days_start = 1401-num_pre_days-365-num_train
+num_days_start = num_days - num_pre_days - num_test_days - num_train_days
 start_data_point = num_days_start * 24
-X_train, X_val, X_test, Y_train, Y_val, Y_test = data_split(D[start_data_point: start_data_point + num_data_points], T[start_data_point: start_data_point + num_data_points], D_max[start_data_point: start_data_point + num_data_points], D_min[start_data_point: start_data_point + num_data_points], season[start_data_point: start_data_point + num_data_points], weekday[start_data_point: start_data_point + num_data_points], festival[start_data_point: start_data_point + num_data_points], 0.8, 0.2, 0.1)
+X_train, X_val, X_test, Y_train, Y_val, Y_test = data_split(D[start_data_point: start_data_point + num_data_points], T[start_data_point: start_data_point + num_data_points], D_max[start_data_point: start_data_point + num_data_points], D_min[start_data_point: start_data_point + num_data_points], season[start_data_point: start_data_point + num_data_points], weekday[start_data_point: start_data_point + num_data_points], festival[start_data_point: start_data_point + num_data_points], num_train_days, 0.1)
 
 ## ----------------------------------------------------------------------------
 # define the model
