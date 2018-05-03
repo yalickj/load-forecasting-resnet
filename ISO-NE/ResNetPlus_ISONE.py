@@ -374,6 +374,7 @@ def get_XY(X, Y):
 # compile and train the model
 
 X_train_fit, Y_train_fit = get_XY(X_train, Y_train)
+X_val, Y_val = get_XY(X_val, Y_val)
 X_test_pred, Y_test_pred = get_XY(X_test, Y_test)
 
 def get_model():
@@ -434,21 +435,21 @@ if TRAIN:
         shuffle_weights(model)
         
         history_1 = model.fit(X_train_fit, Y_train_fit, \
-                            epochs=600, batch_size=BATCH_SIZE, validation_data = (X_test_pred, Y_test_pred))
+                            epochs=600, batch_size=BATCH_SIZE, validation_data = None)
         
         model.save_weights('complete' + str(i+1) +'1_weights.h5')    
         pred_1 = model.predict(X_test_pred)
         pred_eval_1 = pred_1.reshape(24*NUM_TEST_DAYS) 
         
         history_2 = model.fit(X_train_fit, Y_train_fit, \
-                            epochs=50, batch_size=BATCH_SIZE, validation_data = (X_test_pred, Y_test_pred))
+                            epochs=50, batch_size=BATCH_SIZE, validation_data = None)
         
         model.save_weights('complete' + str(i+1) +'2_weights.h5') 
         pred_2 = model.predict(X_test_pred)
         pred_eval_2 = pred_2.reshape(24*NUM_TEST_DAYS) 
         
         history_3 = model.fit(X_train_fit, Y_train_fit, \
-                            epochs=50, batch_size=BATCH_SIZE, validation_data = (X_test_pred, Y_test_pred))
+                            epochs=50, batch_size=BATCH_SIZE, validation_data = None)
         
         model.save_weights('complete' + str(i+1) +'3_weights.h5') 
         pred_3 = model.predict(X_test_pred)
