@@ -18,7 +18,6 @@ import numpy as np
 import pandas as pd
 parse_dates = ['date']
 df = pd.read_csv('selected_data_ISONE.csv', parse_dates=parse_dates, index_col='date')
-# only a sample of seven days is given for illustrative purpose 
 
 D_max_daily = df.rolling(center=False,freq='D',window=1).max()[['demand']].get_values()
 D_min_daily = df.rolling(center=False,freq='D',window=1).min()[['demand']].get_values()
