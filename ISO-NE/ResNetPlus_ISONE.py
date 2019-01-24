@@ -19,12 +19,14 @@ import pandas as pd
 parse_dates = ['date']
 df = pd.read_csv('selected_data_ISONE.csv', parse_dates=parse_dates, index_col='date')
 
+# 1. get the maximum and minimum demands in 0-24 clock intervals
+# 2. get the daily demand and temperature values
 D_max_daily = df.rolling(center=False,freq='D',window=1).max()[['demand']].get_values()
 D_min_daily = df.rolling(center=False,freq='D',window=1).min()[['demand']].get_values()
-T_mean_daily = df.resample("1D").rolling(center=False,window=1).mean()[['temperature']].get_values()
 D = df.demand.get_values()
 T = df.temperature.get_values()
 
+# duplicate max and min daily demand values for 24 hours in a day
 D_max = np.zeros(len(D))
 D_min = np.zeros(len(D))
 
@@ -33,6 +35,7 @@ for i in range(len(D)):
     D_max[i] = D_max_daily[n_day]
     D_min[i] = D_min_daily[n_day]
 
+# normalization based on peak values
 D_max = D_max / 24000.
 D_min = D_min / 24000.
 D = D / 24000.
@@ -77,6 +80,9 @@ for i in range(4324):
     iter_date = iter_date + datetime.timedelta(1)
     
 def data_split(D, T, D_max, D_min, season, weekday, festival, num_train_days, validation_split = 0.1):
+    '''
+    prepare the dataset used for training and testing of the model.
+    '''
     x_1 = []
     x_21_D = []
     x_21_T = []
@@ -96,17 +102,21 @@ def data_split(D, T, D_max, D_min, season, weekday, festival, num_train_days, va
     num_sample = len_dataset-2016
     # 2016 hours (28*3 days) is needed so that we can formulate the first datapoint
     
-    for i in range(2016,len_dataset):    
+    for i in range(2016,len_dataset):   
+        # the demand values of the most recent 24 hours
         x_1.append(D[i-24:i])
         
+        # multiple demand values every 24 hours within a week
         index_x_21 = [i-24, i-48, i-72, i-96, i-120, i-144, i-168]
         x_21_D.append(D[index_x_21])
         x_21_T.append(T[index_x_21])
         
+        # multiple demand values every week within two months
         index_x_22 = [i-168, i-336, i-504, i-672, i-840, i-1008, i-1176, i-1344]
         x_22_D.append(D[index_x_22])
         x_22_T.append(T[index_x_22])
         
+        # multiple demand values every month within several months
         index_x_23 = [i-672, i-1344, i-2016]
         x_23_D.append(D[index_x_23])
         x_23_T.append(T[index_x_23])
@@ -116,7 +126,8 @@ def data_split(D, T, D_max, D_min, season, weekday, festival, num_train_days, va
         x_5.append(D_min[i])
         
         y.append(D[i])
-    
+        
+        # get one-hot representations of the additional information
         season_onehot = np.zeros(4)
         season_onehot[int(season[i])] = 1 
         x_season.append(season_onehot)
@@ -153,6 +164,8 @@ def data_split(D, T, D_max, D_min, season, weekday, festival, num_train_days, va
     Y_train = []
     Y_val = []
     Y_test = []
+    
+    # we prepare 24 sets of data for the 24 sub-networks, each sub-network is aimed at forecasting the load of one hour of the next day
     for i in range(24):
         #               0                          1                         2                         3                         4                         5                         6                         7                    8                    9                    10                          11                           12                                              
         X_train.append([X_1[i:num_train:24,:24-i], X_21_D[i:num_train:24,:], X_21_T[i:num_train:24,:], X_22_D[i:num_train:24,:], X_22_T[i:num_train:24,:], X_23_D[i:num_train:24,:], X_23_T[i:num_train:24,:], X_3[i:num_train:24], X_4[i:num_train:24], X_5[i:num_train:24], X_season[i:num_train:24,:], X_weekday[i:num_train:24,:], X_festival[i:num_train:24,:]])
@@ -164,6 +177,7 @@ def data_split(D, T, D_max, D_min, season, weekday, festival, num_train_days, va
 
     return (X_train, X_val, X_test, Y_train, Y_val, Y_test)
 
+# num_pre_days: the number of days we need before we can get the first sample, in this case: 3*28 days 
 num_pre_days = 84
 num_days = 1401
 num_test_days = 365
@@ -225,8 +239,6 @@ input21_Dd, input21_Dw, input21_Dm, input21_Dr, input21_Td, input21_Tw, input21_
 input22_Dd, input22_Dw, input22_Dm, input22_Dr, input22_Td, input22_Tw, input22_Tm, input22_T = get_input(22)
 input23_Dd, input23_Dw, input23_Dm, input23_Dr, input23_Td, input23_Tw, input23_Tm, input23_T = get_input(23)
 input24_Dd, input24_Dw, input24_Dm, input24_Dr, input24_Td, input24_Tw, input24_Tm, input24_T = get_input(24)
-input_D_max = Input(shape=(1,), name = 'input_D_max')
-input_D_min = Input(shape=(1,), name = 'input_D_min')
 
 input_D_max = Input(shape=(1,), name = 'input_D_max')
 input_D_min = Input(shape=(1,), name = 'input_D_min')
@@ -235,6 +247,10 @@ input_weekday = Input(shape=(2,), name = 'input_weekday')
 input_festival = Input(shape=(2,), name = 'input_festival')
 
 def get_basic_structure(hour, input_Dd, input_Dw, input_Dm, input_Dr, input_Td, input_Tw, input_Tm, input_T, output_pre=[]):
+    '''
+    get the module with the basic structure.
+    output_pre is used to replace the recent 24-hour inputs with the outputs of basic-structure modules of previous hours.
+    '''
     num_dense = 10
     
     dense_Dd = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(input_Dd)
@@ -301,6 +317,9 @@ output23, output_pre23 = get_basic_structure(23, input23_Dd, input23_Dw, input23
 output24, output_pre24 = get_basic_structure(24, input24_Dd, input24_Dw, input24_Dm, input24_Dr, input24_Td, input24_Tw, input24_Tm, input24_T, output_pre23)
 
 def get_res_layer(output, last=False):
+    '''
+    obtain one basic layer in the deep residual network
+    '''
     dense_res11 = Dense(20, activation = 'selu', kernel_initializer = 'lecun_normal')(output)
     dense_res12 = Dense(24, activation = 'linear', kernel_initializer = 'lecun_normal')(dense_res11)
     
@@ -324,6 +343,9 @@ def get_res_layer(output, last=False):
 output_pre = concatenate(output_pre24)
 
 def resnetplus_layer(input_1, input_2, output_list):
+    '''
+    obtain one layer in ResNetPlus.
+    '''
     output_res = get_res_layer(input_1)
     output_res_ = get_res_layer(input_2)
     output_res_ave_mid = average([output_res, output_res_])
@@ -346,6 +368,9 @@ for i in range(num_resnetplus_layer):
 output = output_res_ave
 
 def penalized_loss(y_true, y_pred):
+    '''
+    the loss that penalizes the model when the forcast demand is output of the boundaries for the day's actual demand.
+    '''
     beta = 0.5
     loss1 = mean_absolute_percentage_error(y_true, y_pred)
     loss2 = K.mean(K.maximum(K.max(y_pred, axis=1) - input_D_max, 0.), axis=-1)
