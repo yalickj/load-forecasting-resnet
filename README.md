@@ -1,5 +1,5 @@
 # load-forecasting-resnet
-short-term load forecasting with deep residual networks
+The code for the paper [Short-term Load Forecasting with Deep Residual Networks](https://ieeexplore.ieee.org/document/8372953)
 
 ## ISO-NE test cases
 The model used for the ISO-NE test cases. 
