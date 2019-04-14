@@ -21,8 +21,8 @@ df = pd.read_csv('selected_data_ISONE.csv', parse_dates=parse_dates, index_col='
 
 # 1. get the maximum and minimum demands in 0-24 clock intervals
 # 2. get the daily demand and temperature values
-D_max_daily = df.rolling(center=False,freq='D',window=1).max()[['demand']].get_values()
-D_min_daily = df.rolling(center=False,freq='D',window=1).min()[['demand']].get_values()
+D_max_daily = df.groupby('date').demand.max().get_values()
+D_min_daily = df.groupby('date').demand.min().get_values()
 D = df.demand.get_values()
 T = df.temperature.get_values()
 
