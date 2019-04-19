@@ -42,6 +42,7 @@ D = D / 24000.
 T = T / 100.
 
 # add weekday info to the dataset
+# the initial value for iter_weekday corresponds to the first day of the dataset
 iter_weekday = 6
 weekday = np.zeros((24*4324,))
 for i in range(4324):
@@ -202,14 +203,14 @@ from keras.callbacks import EarlyStopping
 from keras.optimizers import SGD, adam
 
 def get_input(hour):
-    input_Dd = Input(shape=(7,), name = 'input'+str(hour)+'_Dd')
-    input_Dw = Input(shape=(8,), name = 'input'+str(hour)+'_Dw')
-    input_Dm = Input(shape=(3,), name = 'input'+str(hour)+'_Dm')
-    input_Dr = Input(shape=(24-hour+1,), name = 'input'+str(hour)+'_Dr')
+    input_Dd = Input(shape=(7,), name='input'+str(hour)+'_Dd')
+    input_Dw = Input(shape=(8,), name='input'+str(hour)+'_Dw')
+    input_Dm = Input(shape=(3,), name='input'+str(hour)+'_Dm')
+    input_Dr = Input(shape=(24-hour+1,), name='input'+str(hour)+'_Dr')
     
-    input_Td = Input(shape=(7,), name = 'input'+str(hour)+'_Td')
-    input_Tw = Input(shape=(8,), name = 'input'+str(hour)+'_Tw')
-    input_Tm = Input(shape=(3,), name = 'input'+str(hour)+'_Tm')
+    input_Td = Input(shape=(7,), name='input'+str(hour)+'_Td')
+    input_Tw = Input(shape=(8,), name='input'+str(hour)+'_Tw')
+    input_Tm = Input(shape=(3,), name='input'+str(hour)+'_Tm')
     
     input_T = Input(shape=(1,))
     
@@ -240,11 +241,11 @@ input22_Dd, input22_Dw, input22_Dm, input22_Dr, input22_Td, input22_Tw, input22_
 input23_Dd, input23_Dw, input23_Dm, input23_Dr, input23_Td, input23_Tw, input23_Tm, input23_T = get_input(23)
 input24_Dd, input24_Dw, input24_Dm, input24_Dr, input24_Td, input24_Tw, input24_Tm, input24_T = get_input(24)
 
-input_D_max = Input(shape=(1,), name = 'input_D_max')
-input_D_min = Input(shape=(1,), name = 'input_D_min')
-input_season = Input(shape=(4,), name = 'input_season')
-input_weekday = Input(shape=(2,), name = 'input_weekday')
-input_festival = Input(shape=(2,), name = 'input_festival')
+input_D_max = Input(shape=(1,), name='input_D_max')
+input_D_min = Input(shape=(1,), name='input_D_min')
+input_season = Input(shape=(4,), name='input_season')
+input_weekday = Input(shape=(2,), name='input_weekday')
+input_festival = Input(shape=(2,), name='input_festival')
 
 def get_basic_structure(hour, input_Dd, input_Dw, input_Dm, input_Dr, input_Td, input_Tw, input_Tm, input_T, output_pre=[]):
     '''
@@ -253,40 +254,40 @@ def get_basic_structure(hour, input_Dd, input_Dw, input_Dm, input_Dr, input_Td, 
     '''
     num_dense = 10
     
-    dense_Dd = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(input_Dd)
-    dense_Dw = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(input_Dw)
-    dense_Dm = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(input_Dm)
-    dense_Td = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(input_Td)
-    dense_Tw = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(input_Tw)
-    dense_Tm = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(input_Tm)
+    dense_Dd = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(input_Dd)
+    dense_Dw = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(input_Dw)
+    dense_Dm = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(input_Dm)
+    dense_Td = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(input_Td)
+    dense_Tw = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(input_Tw)
+    dense_Tm = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(input_Tm)
     
     concat_d = concatenate([dense_Dd, dense_Td])
-    dense_d = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(concat_d)
+    dense_d = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(concat_d)
     
     concat_w = concatenate([dense_Dw, dense_Tw])
-    dense_w = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(concat_w)
+    dense_w = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(concat_w)
     
     concat_m = concatenate([dense_Dm, dense_Tm])
-    dense_m = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(concat_m)
+    dense_m = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(concat_m)
     
     concat_date_info = concatenate([input_season, input_weekday])
-    dense_concat_date_info_1 = Dense(5, activation = 'selu', kernel_initializer = 'lecun_normal')(concat_date_info)
-    dense_concat_date_info_2 = Dense(5, activation = 'selu', kernel_initializer = 'lecun_normal')(concat_date_info)
+    dense_concat_date_info_1 = Dense(5, activation='selu', kernel_initializer='lecun_normal')(concat_date_info)
+    dense_concat_date_info_2 = Dense(5, activation='selu', kernel_initializer='lecun_normal')(concat_date_info)
     
     concat_FC2 = concatenate([dense_d, dense_w, dense_m, dense_concat_date_info_1, input_festival])
-    dense_FC2 = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(concat_FC2)
+    dense_FC2 = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(concat_FC2)
     
     if output_pre == []:
-        dense_Dr = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(input_Dr)
+        dense_Dr = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(input_Dr)
     else:
         concat_Dr = concatenate([input_Dr] + output_pre)
-        dense_Dr = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(concat_Dr)
-    dense_FC1 = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(concatenate([dense_Dr, dense_concat_date_info_2]))
+        dense_Dr = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(concat_Dr)
+    dense_FC1 = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(concatenate([dense_Dr, dense_concat_date_info_2]))
         
     concat = concatenate([dense_FC2, dense_FC1, input_T])
-    dense_pre_output = Dense(num_dense, activation = 'selu', kernel_initializer = 'lecun_normal')(concat)
+    dense_pre_output = Dense(num_dense, activation='selu', kernel_initializer='lecun_normal')(concat)
     
-    output = Dense(1, activation = 'linear', name='output'+str(hour), kernel_initializer = 'lecun_normal')(dense_pre_output)
+    output = Dense(1, activation='linear', name='output'+str(hour), kernel_initializer='lecun_normal')(dense_pre_output)
     
     output_pre_new = output_pre + [output]
     return (output, output_pre_new)
@@ -320,22 +321,22 @@ def get_res_layer(output, last=False):
     '''
     obtain one basic layer in the deep residual network
     '''
-    dense_res11 = Dense(20, activation = 'selu', kernel_initializer = 'lecun_normal')(output)
-    dense_res12 = Dense(24, activation = 'linear', kernel_initializer = 'lecun_normal')(dense_res11)
+    dense_res11 = Dense(20, activation='selu', kernel_initializer='lecun_normal')(output)
+    dense_res12 = Dense(24, activation='linear', kernel_initializer='lecun_normal')(dense_res11)
     
-    dense_res21 = Dense(20, activation = 'selu', kernel_initializer = 'lecun_normal')(output)
-    dense_res22 = Dense(24, activation = 'linear', kernel_initializer = 'lecun_normal')(dense_res21)
+    dense_res21 = Dense(20, activation='selu', kernel_initializer='lecun_normal')(output)
+    dense_res22 = Dense(24, activation='linear', kernel_initializer='lecun_normal')(dense_res21)
 
-    dense_res31 = Dense(20, activation = 'selu', kernel_initializer = 'lecun_normal')(output)
-    dense_res32 = Dense(24, activation = 'linear', kernel_initializer = 'lecun_normal')(dense_res31)
+    dense_res31 = Dense(20, activation='selu', kernel_initializer='lecun_normal')(output)
+    dense_res32 = Dense(24, activation='linear', kernel_initializer='lecun_normal')(dense_res31)
 
-    dense_res41 = Dense(20, activation = 'selu', kernel_initializer = 'lecun_normal')(output)
-    dense_res42 = Dense(24, activation = 'linear', kernel_initializer = 'lecun_normal')(dense_res41)
+    dense_res41 = Dense(20, activation='selu', kernel_initializer='lecun_normal')(output)
+    dense_res42 = Dense(24, activation='linear', kernel_initializer='lecun_normal')(dense_res41)
     
     dense_add = add([dense_res12, dense_res22, dense_res32, dense_res42])
     
     if last:
-        output_new = add([dense_add, output], name = 'output')
+        output_new = add([dense_add, output], name='output')
     else:
         output_new = add([dense_add, output])
     return output_new
@@ -390,7 +391,7 @@ def get_XY(X, Y):
         X_new.append(X[i][6])
         X_new.append(X[i][7]) # temperature
         Y_new.append(Y[i])
-    X_new = X_new + [X[0][8],X[0][9],X[0][10],X[0][11],X[0][12]]
+    X_new = X_new + [X[0][8], X[0][9], X[0][10], X[0][11], X[0][12]]
     Y_new = [np.squeeze(np.array(Y_new)).transpose()] # the aggregate output of 24 single outputs
     return (X_new, Y_new)
 
@@ -431,7 +432,7 @@ def get_model():
     return model
       
 model = get_model()
-model.compile(optimizer = 'adam', loss = penalized_loss)
+model.compile(optimizer='adam', loss=penalized_loss)
 
 def shuffle_weights(model, weights=None):
     """Randomly permute the weights in `model`, or the given `weights`.
@@ -459,21 +460,21 @@ if TRAIN:
         shuffle_weights(model)
         
         history_1 = model.fit(X_train_fit, Y_train_fit, \
-                            epochs=600, batch_size=BATCH_SIZE, validation_data = None)
+                            epochs=600, batch_size=BATCH_SIZE, validation_data=None)
         
-        model.save_weights('complete' + str(i+1) +'1_weights.h5')    
+        model.save_weights('complete' + str(i+1) + '1_weights.h5')    
         pred_1 = model.predict(X_test_pred)
         pred_eval_1 = pred_1.reshape(24*NUM_TEST_DAYS) 
         
         history_2 = model.fit(X_train_fit, Y_train_fit, \
-                            epochs=50, batch_size=BATCH_SIZE, validation_data = None)
+                            epochs=50, batch_size=BATCH_SIZE, validation_data=None)
         
-        model.save_weights('complete' + str(i+1) +'2_weights.h5') 
+        model.save_weights('complete' + str(i+1) + '2_weights.h5') 
         pred_2 = model.predict(X_test_pred)
         pred_eval_2 = pred_2.reshape(24*NUM_TEST_DAYS) 
         
         history_3 = model.fit(X_train_fit, Y_train_fit, \
-                            epochs=50, batch_size=BATCH_SIZE, validation_data = None)
+                            epochs=50, batch_size=BATCH_SIZE, validation_data=None)
         
         model.save_weights('complete' + str(i+1) +'3_weights.h5') 
         pred_3 = model.predict(X_test_pred)
@@ -483,16 +484,16 @@ if TRAIN:
         history_list.append([history_1, history_2, history_3])
     
     with h5py.File('results.h5', 'w') as h5f:
-        h5f.create_dataset('pred_list', data = pred_list)
+        h5f.create_dataset('pred_list', data=pred_list)
     
-p = np.zeros((NUM_REPEAT*NUM_SNAPSHOTS,24*NUM_TEST_DAYS))
+p = np.zeros((NUM_REPEAT * NUM_SNAPSHOTS, 24 * NUM_TEST_DAYS))
 for i in range(NUM_REPEAT):
     for j in range(NUM_SNAPSHOTS):
         model.load_weights('complete' + str(i+1) + str(j+1) + '_weights.h5')
         pred = model.predict(X_test_pred)
-        p[i*NUM_SNAPSHOTS+j,:] = pred.reshape(24*NUM_TEST_DAYS) 
-pred_eval = np.mean(p, axis = 0)
-Y_test_eval = np.array(Y_test).transpose().reshape(24*NUM_TEST_DAYS)
+        p[i*NUM_SNAPSHOTS+j, :] = pred.reshape(24 * NUM_TEST_DAYS) 
+pred_eval = np.mean(p, axis=0)
+Y_test_eval = np.array(Y_test).transpose().reshape(24 * NUM_TEST_DAYS)
 mape = np.mean(np.divide(np.abs(Y_test_eval - pred_eval), Y_test_eval))
 
 def get_curve_data(history):
@@ -513,21 +514,21 @@ for history in history_list:
 loss = np.array(loss_list)
 val_loss = np.array(val_loss_list)
 
-loss_mean = np.mean(loss, axis = 0)
-loss_std = np.std(loss, axis = 0)
+loss_mean = np.mean(loss, axis=0)
+loss_std = np.std(loss, axis=0)
 loss_up = loss_mean + loss_std
 loss_down = loss_mean - loss_std
 
-val_loss_mean = np.mean(val_loss, axis = 0)
-val_loss_std = np.std(val_loss, axis = 0)
+val_loss_mean = np.mean(val_loss, axis=0)
+val_loss_std = np.std(val_loss, axis=0)
 val_loss_up = val_loss_mean + val_loss_std
 val_loss_down = val_loss_mean - val_loss_std
 
 x = range(700)
 
-plt.figure(figsize = (5,4))
-plt.plot(x, loss_mean, color = 'Green')
+plt.figure(figsize=(5, 4))
+plt.plot(x, loss_mean, color='Green')
 plt.fill_between(x, loss_up, loss_down, color='LightGreen', alpha=0.7) 
-plt.plot(val_loss_mean, color = 'RoyalBlue')
+plt.plot(val_loss_mean, color='RoyalBlue')
 plt.fill_between(x, val_loss_up, val_loss_down, color='LightSkyBlue', alpha=0.7) 
 plt.axis([200,700,1,2.5])
