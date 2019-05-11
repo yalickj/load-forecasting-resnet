@@ -442,8 +442,8 @@ def shuffle_weights(model, weights=None):
     weights = [np.random.permutation(w.flat).reshape(w.shape) for w in weights]
     model.set_weights(weights)
 
-NUM_REPEAT = 5
-NUM_SNAPSHOTS = 3
+NUM_REPEAT = 2
+NUM_SNAPSHOTS = 2
 NUM_TEST_DAYS = 365
 
 TRAIN = 1 # set TRAIN to 0 if you already have the weights in the directory.
@@ -496,39 +496,69 @@ pred_eval = np.mean(p, axis=0)
 Y_test_eval = np.array(Y_test).transpose().reshape(24 * NUM_TEST_DAYS)
 mape = np.mean(np.divide(np.abs(Y_test_eval - pred_eval), Y_test_eval))
 
-def get_curve_data(history):
-    loss = []
-    val_loss = []
-    for history_item in history:
-        loss = loss + history_item.history['loss']
-        val_loss = val_loss + history_item.history['val_loss']
-    return (np.array(loss), np.array(val_loss))
+VAL = False # only used for the plotting section hereafter
+# You can set the proportion of validation data in the training phase
+# or split the data into training and validation sets in advance
 
-loss_list = []
-val_loss_list = []
-for history in history_list:
-    loss_once, val_loss_once = get_curve_data(history)
-    loss_list.append(loss_once)
-    val_loss_list.append(val_loss_once)
+if VAL:
+    def get_curve_data(history):
+        loss = []
+        val_loss = []
+        for history_item in history:
+            loss = loss + history_item.history['loss']
+            val_loss = val_loss + history_item.history['val_loss']
+        return (np.array(loss), np.array(val_loss))
     
-loss = np.array(loss_list)
-val_loss = np.array(val_loss_list)
-
-loss_mean = np.mean(loss, axis=0)
-loss_std = np.std(loss, axis=0)
-loss_up = loss_mean + loss_std
-loss_down = loss_mean - loss_std
-
-val_loss_mean = np.mean(val_loss, axis=0)
-val_loss_std = np.std(val_loss, axis=0)
-val_loss_up = val_loss_mean + val_loss_std
-val_loss_down = val_loss_mean - val_loss_std
-
-x = range(700)
-
-plt.figure(figsize=(5, 4))
-plt.plot(x, loss_mean, color='Green')
-plt.fill_between(x, loss_up, loss_down, color='LightGreen', alpha=0.7) 
-plt.plot(val_loss_mean, color='RoyalBlue')
-plt.fill_between(x, val_loss_up, val_loss_down, color='LightSkyBlue', alpha=0.7) 
-plt.axis([200,700,1,2.5])
+    loss_list = []
+    val_loss_list = []
+    for history in history_list:
+        loss_once, val_loss_once = get_curve_data(history)
+        loss_list.append(loss_once)
+        val_loss_list.append(val_loss_once)
+        
+    loss = np.array(loss_list)
+    val_loss = np.array(val_loss_list)
+    
+    loss_mean = np.mean(loss, axis=0)
+    loss_std = np.std(loss, axis=0)
+    loss_up = loss_mean + loss_std
+    loss_down = loss_mean - loss_std
+    
+    val_loss_mean = np.mean(val_loss, axis=0)
+    val_loss_std = np.std(val_loss, axis=0)
+    val_loss_up = val_loss_mean + val_loss_std
+    val_loss_down = val_loss_mean - val_loss_std
+    
+    x = range(700)
+    
+    plt.figure(figsize=(5, 4))
+    plt.plot(x, loss_mean, color='Green')
+    plt.fill_between(x, loss_up, loss_down, color='LightGreen', alpha=0.7) 
+    plt.plot(val_loss_mean, color='RoyalBlue')
+    plt.fill_between(x, val_loss_up, val_loss_down, color='LightSkyBlue', alpha=0.7) 
+    plt.axis([200,700,1,2.5])
+else:
+    def get_curve_data(history):
+        loss = []
+        for history_item in history:
+            loss = loss + history_item.history['loss']
+        return (np.array(loss))
+    
+    loss_list = []
+    for history in history_list:
+        loss_once = get_curve_data(history)
+        loss_list.append(loss_once)
+        
+    loss = np.array(loss_list)
+    
+    loss_mean = np.mean(loss, axis=0)
+    loss_std = np.std(loss, axis=0)
+    loss_up = loss_mean + loss_std
+    loss_down = loss_mean - loss_std
+    
+    x = range(700)
+    
+    plt.figure(figsize=(5, 4))
+    plt.plot(x, loss_mean, color='Green')
+    plt.fill_between(x, loss_up, loss_down, color='LightGreen', alpha=0.7) 
+    plt.axis([200,700,1,2.5])    
