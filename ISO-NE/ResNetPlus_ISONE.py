@@ -442,8 +442,8 @@ def shuffle_weights(model, weights=None):
     weights = [np.random.permutation(w.flat).reshape(w.shape) for w in weights]
     model.set_weights(weights)
 
-NUM_REPEAT = 2
-NUM_SNAPSHOTS = 2
+NUM_REPEAT = 5
+NUM_SNAPSHOTS = 3
 NUM_TEST_DAYS = 365
 
 TRAIN = 1 # set TRAIN to 0 if you already have the weights in the directory.
