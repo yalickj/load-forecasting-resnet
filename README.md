@@ -1,10 +1,13 @@
 # load-forecasting-resnet
 This repository contains codes for the paper [Short-term Load Forecasting with Deep Residual Networks](https://ieeexplore.ieee.org/document/8372953).
 
-## ISO-NE test cases
-We opensource in this repository the model used for the ISO-NE test cases. Code for ResNetPlus model can be found in /ISO-NE/ResNetPlus_ISONE.py
+## ISO-NE test case
+We opensource in this repository the model used for the ISO-NE test case. Code for ResNetPlus model can be found in /ISO-NE/ResNetPlus_ISONE.py
 
 The dataset contains load and temperature data from 2003 to 2014.
+
+## North American test case
+The code for the North American test case is added. Learning rate decay is added to produce more stable results.
 
 ## Citation
 If you find the codes useful in your research, please consider citing:
