@@ -10,7 +10,7 @@ The dataset contains load and temperature data from 2003 to 2014.
 The code for the North American test case is added. Learning rate decay is added to produce more stable results.
 
 ## Updates
-### 2021-05-11: Competition: [DAY-AHEAD ELECTRICITY DEMAND FORECASTING: POST-COVID PARADIGM](https://ieee-dataport.org/competitions/day-ahead-electricity-demand-forecasting-post-covid-paradigm)
+### (2021-05-11) Competition: [DAY-AHEAD ELECTRICITY DEMAND FORECASTING: POST-COVID PARADIGM](https://ieee-dataport.org/competitions/day-ahead-electricity-demand-forecasting-post-covid-paradigm)
 The implementation of the proposed model in Pytorch ranked 5# (team 19) in this competition.
 
 ## Citation
